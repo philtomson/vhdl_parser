@@ -1,17 +1,3 @@
-/*=============================================================================
-    Copyright (c) 2002-2010 Joel de Guzman
-
-    Distributed under the Boost Software License, Version 1.0. (See accompanying
-    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-=============================================================================*/
-///////////////////////////////////////////////////////////////////////////////
-//
-//  A parser for arbitrary tuples. This example presents a parser
-//  for an vhdl port structure.
-//
-//  [ JDG May 9, 2007 ]
-//
-///////////////////////////////////////////////////////////////////////////////
 
 #include <boost/config/warning_disable.hpp>
 #include <boost/spirit/include/qi.hpp>
@@ -47,16 +33,6 @@ namespace client
 // to make it a first-class fusion citizen. This has to
 // be in global scope.
 
-//[tutorial_port_sig
-/*
-BOOST_FUSION_ADAPT_STRUCT(
-    client::port_sig,
-    (int, age)
-    (std::string, surname)
-    (std::string, forename)
-    (double, salary)
-)
-*/
 
 BOOST_FUSION_ADAPT_STRUCT(
   client::port_sig,
@@ -65,7 +41,6 @@ BOOST_FUSION_ADAPT_STRUCT(
   //(VHDL_Parser::direction, dir)
 )
 
-//]
 
 namespace client
 {
@@ -96,7 +71,7 @@ namespace client
 
            ident %= ((char_("a-zA-Z_") >> *char_("a-zA-Z_0-9")) - keyword );
            direction_spec %= (in_kwd | out_kwd | inout_kwd );
-/*
+/* //more keywords for later
             dot            = char_('.');
             colon          = char_(':');
             semicolon      = char_(';');
