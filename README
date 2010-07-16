@@ -1,0 +1,3 @@
+A minimal VHDL parser to extract VHDL port definitions.
+
+requires boost 1.43.
