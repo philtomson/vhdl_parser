@@ -1,0 +1,39 @@
+Aurochs version of VHDL port parser.
+
+Aurochs is a PEG parser generator.  For more info see: http://aurochs.fr/
+
+The purpose is to compare this with the C++ boost::spirit verison in the main directory.
+This parser is actually much more complete than the boost::spirit version.
+
+To build: 
+
+> make
+
+To run the simple test:
+
+> ./parse_vhdl.native
+
+
+Or if you have Aurochs installed on your system you can try the following:
+
+> aurochs -parse ../port_test.vhd vhdl.peg
+
+
+Commentary:
+
+With Aurochs you define a peg file that contains your grammar (vhdl.peg in this case) and you designate
+various nodes that you're interested in like so: <NodeOfInterest>...</NodeOfInterest>
+
+The parser then generates an AST with your designated nodes and you have to walk that tree to
+do interesting things with it.  This means that semantic actions are completely separate from 
+the grammar... that can be an advantage.  
+
+One problem I see so far is that when there is a parse error it doesn't tell you the line that
+error occurs on, it gives you a character count.  It's possible (probable) that I'm missing something
+here, so I'm not saying that Aurochs can't do this only that I haven't figured it out yet.
+Also, I haven't quite figured out Aurochs' error handling philosophy - it could be that you 
+are on your own for that.
+
+Overall, though, I've made a lot more progress on this version than I did with the boost::spirit
+version.  Trying to figure out the template error messages that spirit produces when it's not
+happy can be daunting.

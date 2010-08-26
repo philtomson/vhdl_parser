@@ -1,0 +1,268 @@
+line_terminator ::= "\r\n" | "\n" ;
+comment_delim ::= "--";
+comment ::= <Comment>comment_delim (~ line_terminator sigma)* (line_terminator )</Comment>;
+
+space ::= 
+   [ \n\r\t]
+|  comment;
+
+alphanum ::= [A-Za-z_0-9$]; (* Check lexical rules for identifiers *)
+alpha ::= [A-Za-z_$];
+
+
+dec_number ::= [0-9]+;
+
+letter ::= [A-Za-z];
+letter_or_digit ::= [A-Za-z0-9];
+basic_ident ::= (~(keyword sp) letter letter_or_digit*);
+ident ::= basic_ident ;
+sp ::= space+ | ~alpha | BOF;
+LPAR ::= "(";
+RPAR ::= ")";
+semicolon   ::= ";";
+
+ 
+
+ 
+abs_kwd ::= "abs"^i ;
+access_kwd ::= "access"^i ;
+after_kwd ::= "after"^i ;
+alias_kwd ::= "alias"^i ;
+all_kwd ::= "all"^i ;
+and_kwd ::= "and"^i ;
+architecture_kwd ::= "architecture"^i ;
+array_kwd ::= "array"^i ;
+assert_kwd ::= "assert"^i ;
+attribute_kwd ::= "attribute"^i ;
+begin_kwd ::= "begin"^i ;
+block_kwd ::= "block"^i ;
+body_kwd ::= "body"^i ;
+buffer_kwd ::= "buffer"^i ;
+bus_kwd ::= "bus"^i ;
+case_kwd ::= "case"^i ;
+component_kwd ::= "component"^i ;
+configuration_kwd ::= "configuration"^i ;
+constant_kwd ::= "constant"^i ;
+disconnect_kwd ::= "disconnect"^i ;
+downto_kwd ::= "downto"^i ;
+else_kwd ::= "else"^i ;
+elsif_kwd ::= "elsif"^i ;
+end_kwd ::= "end"^i ;
+entity_kwd ::= "entity"^i ;
+exit_kwd ::= "exit"^i ;
+file_kwd ::= "file"^i ;
+for_kwd ::= "for"^i ;
+function_kwd ::= "function"^i ;
+generate_kwd ::= "generate"^i ;
+generic_kwd ::= "generic"^i ;
+group_kwd ::= "group"^i ;
+guarded_kwd ::= "guarded"^i ;
+if_kwd ::= "if"^i ;
+impure_kwd ::= "impure"^i ;
+in_kwd ::= "in"^i ;
+inertial_kwd ::= "inertial"^i ;
+inout_kwd ::= "inout"^i ;
+is_kwd ::= "is"^i ;
+label_kwd ::= "label"^i ;
+library_kwd ::= "library"^i ;
+linkage_kwd ::= "linkage"^i ;
+literal_kwd ::= "literal"^i ;
+loop_kwd ::= "loop"^i ;
+map_kwd ::= "map"^i ;
+mod_kwd ::= "mod"^i ;
+nand_kwd ::= "nand"^i ;
+new_kwd ::= "new"^i ;
+next_kwd ::= "next"^i ;
+nor_kwd ::= "nor"^i ;
+not_kwd ::= "not"^i ;
+null_kwd ::= "null"^i ;
+of_kwd ::= "of"^i ;
+on_kwd ::= "on"^i ;
+open_kwd ::= "open"^i ;
+or_kwd ::= "or"^i ;
+others_kwd ::= "others"^i ;
+out_kwd ::= "out"^i ;
+package_kwd ::= "package"^i ;
+port_kwd ::= "port"^i ;
+postponed_kwd ::= "postponed"^i ;
+procedure_kwd ::= "procedure"^i ;
+process_kwd ::= "process"^i ;
+pure_kwd ::= "pure"^i ;
+range_kwd ::= "range"^i ;
+record_kwd ::= "record"^i ;
+register_kwd ::= "register"^i ;
+reject_kwd ::= "reject"^i ;
+return_kwd ::= "return"^i ;
+rol_kwd ::= "rol"^i ;
+ror_kwd ::= "ror"^i ;
+select_kwd ::= "select"^i ;
+severity_kwd ::= "severity"^i ;
+signal_kwd ::= "signal"^i ;
+shared_kwd ::= "shared"^i ;
+sla_kwd ::= "sla"^i ;
+sli_kwd ::= "sli"^i ;
+sra_kwd ::= "sra"^i ;
+srl_kwd ::= "srl"^i ;
+subtype_kwd ::= "subtype"^i ;
+then_kwd ::= "then"^i ;
+to_kwd ::= "to"^i ;
+transport_kwd ::= "transport"^i ;
+type_kwd ::= "type"^i ;
+unaffected_kwd ::= "unaffected"^i ;
+units_kwd ::= "units"^i ;
+until_kwd ::= "until"^i ;
+use_kwd ::= "use"^i ;
+variable_kwd ::= "variable"^i ;
+wait_kwd ::= "wait"^i ;
+when_kwd ::= "when"^i ;
+while_kwd ::= "while"^i ;
+with_kwd ::= "with"^i ;
+xnor_kwd ::= "xnor"^i ;
+xor_kwd ::= "xor"^i ;
+
+keyword ::= 
+  abs_kwd |
+  access_kwd |
+  after_kwd |
+  alias_kwd |
+  all_kwd |
+  and_kwd |
+  architecture_kwd |
+  array_kwd |
+  assert_kwd |
+  attribute_kwd |
+  begin_kwd |
+  block_kwd |
+  body_kwd |
+  buffer_kwd |
+  bus_kwd |
+  case_kwd |
+  component_kwd |
+  configuration_kwd |
+  constant_kwd |
+  disconnect_kwd |
+  downto_kwd |
+  else_kwd |
+  elsif_kwd |
+  end_kwd |
+  entity_kwd |
+  exit_kwd |
+  file_kwd |
+  for_kwd |
+  function_kwd |
+  generate_kwd |
+  generic_kwd |
+  group_kwd |
+  guarded_kwd |
+  if_kwd |
+  impure_kwd |
+  in_kwd |
+  inertial_kwd |
+  inout_kwd |
+  is_kwd |
+  label_kwd |
+  library_kwd |
+  linkage_kwd |
+  literal_kwd |
+  loop_kwd |
+  map_kwd |
+  mod_kwd |
+  nand_kwd |
+  new_kwd |
+  next_kwd |
+  nor_kwd |
+  not_kwd |
+  null_kwd |
+  of_kwd |
+  on_kwd |
+  open_kwd |
+  or_kwd |
+  others_kwd |
+  out_kwd |
+  package_kwd |
+  port_kwd |
+  postponed_kwd |
+  procedure_kwd |
+  process_kwd |
+  pure_kwd |
+  range_kwd |
+  record_kwd |
+  register_kwd |
+  reject_kwd |
+  return_kwd |
+  rol_kwd |
+  ror_kwd |
+  select_kwd |
+  severity_kwd |
+  signal_kwd |
+  shared_kwd |
+  sla_kwd |
+  sli_kwd |
+  sra_kwd |
+  srl_kwd |
+  subtype_kwd |
+  then_kwd |
+  to_kwd |
+  transport_kwd |
+  type_kwd |
+  unaffected_kwd |
+  units_kwd |
+  until_kwd |
+  use_kwd |
+  variable_kwd |
+  wait_kwd |
+  when_kwd |
+  while_kwd |
+  with_kwd |
+  xnor_kwd |
+  xor_kwd ;
+
+
+
+optional_space ::= space*;
+
+outfixing optional_space do
+  appending optional_space do
+
+    num_expression ::= dec_number; (* expand with arit expressions *)
+
+    mode ::= <Dir_spec>{(in_kwd | out_kwd | inout_kwd | buffer_kwd | linkage_kwd )}</Dir_spec> ;
+
+    type_name ::= ident; (* TODO: need to be able to add optional range *)
+
+    entity_decl ::= <Entity_decl>entity_kwd entity_name:ident is_kwd generic_clause? port_decl</Entity_decl>; 
+
+    generic_list ::= generic_decl ( semicolon? generic_decl)* ;
+    
+    (* TODO: currently a generic value can only be an integer *)
+    generic_decl ::= <GenericDecl>(gennames:identifier_list ":" type:type_name (":=" generic_value:num_expression )? )</GenericDecl> ;
+
+    generic_clause ::= <GenericClause>generic_kwd LPAR  generic_list  RPAR semicolon</GenericClause> ;
+
+    identifier_list ::= ident ( ","? ident )* ;
+
+    interface_signal_decl ::= <ISigDecl>((signal_kwd)? signames:identifier_list ":" direction:mode type:{type_name}) </ISigDecl>;
+
+    interface_element ::= interface_signal_decl ;
+
+    interface_list ::= interface_element ( semicolon? interface_element )* ;
+
+    port_sig ::= <Port_sig> name:{ident} ":" direction:{mode} </Port_sig>;
+
+    port_decl1 ::= <Port_decl> start:position port_kwd LPAR port_sig ( semicolon? port_sig)* RPAR semicolon</Port_decl>;
+
+    port_decl ::= <Port_decl> start:position port_kwd LPAR interface_list RPAR semicolon </Port_decl>;
+
+    dont_care_statement ::= (* we aren't trying to check the validity of these statements for now *)
+      ~entity_decl |
+      ~port_decl |
+      ~generic_clause |
+      comment;
+
+    dont_care_statements ::=  dont_care_statement*;
+     
+
+  done;
+done;
+
+start ::= dont_care_statements? entity_decl dont_care_statements? EOF;
