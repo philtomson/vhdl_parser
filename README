@@ -4,3 +4,8 @@ requires boost 1.43.
 
 
 Doesn't do a whole lot just yet...  Still learning boost::spirit (version 2.x)
+
+
+To compare with a different PEG parser I've added an Aurochs directory here
+that contains an implementation using the Aurochs PEG parser generator
+for OCaml.  See the README in the aurochs directory for more info.
