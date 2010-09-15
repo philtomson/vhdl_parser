@@ -265,4 +265,4 @@ outfixing optional_space do
   done;
 done;
 
-start ::= dont_care_statements? entity_decl dont_care_statements? EOF;
+start ::= (dont_care_statements? entity_decl dont_care_statements?)* EOF;

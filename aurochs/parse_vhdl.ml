@@ -10,9 +10,9 @@ let print_indent ?(oc=stdout) d =
     fp oc "  "
   done
 
-
+type namespace = { package: string option; entity: string option } ;;
 type interface = { signame: string; mode: string; sigtype: string } ;;
-type generic   = { mutable name: string; mutable g_type: string; mutable value:
+type generic   = { name: string; g_type: string; mutable value:
   string option } ;;
 
 let print_interface i = 
@@ -53,29 +53,35 @@ let rec handle_generic gns::al =
               ) al; Printf.printf "</GenericDecl>\n"
 *)
 
-let rec eval = function
-  | Node(N_Root, _, [x]) ->  Printf.fprintf stdout "<Root>\n"; eval x; Printf.printf "</Root>\n";
+let rec eval tree path symtbl  = match tree with
+Node(N_Root, _, [x]) ->  Printf.fprintf stdout "<Root>\n"; eval x path symtbl; Printf.printf "</Root>\n";
   | Node(N_Root, _, (_::_ as lst)) ->  Printf.fprintf stdout "<Root>\n"; 
-    List.iter ( fun node -> eval node ) lst;
+    List.iter ( fun node -> eval node path symtbl ) lst;
     Printf.fprintf stdout "</Root>\n"
   | Node(N_Entity_decl, [A_entity_name,ename], (_::_ as elist)) ->
+      let newpath = {package=path.package; entity=(Some ename)} in
+      Hashtbl.add symtbl newpath (Hashtbl.create 7);
       Printf.printf "<Entity: %s>\n" ename;
-      List.iter ( fun node -> eval node ) elist;
+      List.iter ( fun node -> eval node newpath symtbl ) elist;
       Printf.printf "</Entity: %s>\n" ename
-  | Node(N_Dir_spec,  [_,z], [x]) -> (Printf.printf "Direction is: %s" z); eval x
+  | Node(N_Dir_spec,  [_,z], [x]) -> (Printf.printf "Direction is: %s" z); eval x path symtbl
   | Node(N_Dir_spec,  _, [x]) -> (Printf.printf "Direction is: " )
   | Node(N_GenericClause, _, (_::_ as lst)) ->
      pf "<GenericClause>\n";
-     List.iter ( fun node -> eval node ) lst ;
+     List.iter ( fun node -> eval node path symtbl) lst ;
      pf "</GenericClause>\n"
-  | Node(N_GenericDecl,
-         [(A_gennames,names);(A_type,gentype);(A_generic_value,value)], _) -> 
+  | Node(N_GenericDecl, [(A_gennames,names);(A_type,gentype);(A_generic_value,value)], _) -> 
+         let ent_symtab = Hashtbl.find symtbl path in
          let namelist = split "," names in
-         List.iter ( fun s -> (pf " GenName: %s => Type: %s => Value: %s \n" s gentype value) ) namelist
-  | Node(N_GenericDecl,
-         [(A_gennames,names);(A_type,gentype)], _) -> 
+         List.iter ( fun s -> ((pf " GenName: %s => Type: %s => Value: %s \n" s gentype value)); 
+           Hashtbl.add ent_symtab s (Some value)
+         ) namelist
+  | Node(N_GenericDecl, [(A_gennames,names);(A_type,gentype)], _) -> 
+         let ent_symtab = Hashtbl.find symtbl path in
          let namelist = split "," names in
-         List.iter ( fun s -> (pf " GenName: %s => Type: %s => Value: ?? \n" s gentype ) ) namelist
+         List.iter ( fun s -> (pf " GenName: %s => Type: %s => Value: ?? \n" s gentype ); 
+           Hashtbl.add ent_symtab s None
+         ) namelist
   (* May have to bring this back later: 
   | Node(N_GenericDecl, al, _) -> Printf.printf "<GenericDecl>\n";
     List.iter ( fun (attrib,value)  -> 
@@ -104,16 +110,21 @@ let rec eval = function
   (*| Node(N_Port_decl,_, []) -> Printf.printf "Port_decl end\n"*)
   | Node(N_Port_decl, al, (_::_ as lst) ) -> Printf.printf "<Port_decl> \n";
      (* Printf.printf " => %s\n"  value;  )  al;*)
-     List.iter ( fun node -> eval node ) lst ;
+     List.iter ( fun node -> eval node path symtbl) lst ;
      Printf.printf "</Port_decl>\n";
 
-  |Node( (_ as unode), _, _) ->  Printf.printf "What node is this? "; print_node_name stdout unode
+  |Node( (_ as unode), _, _) ->  Printf.printf "What node is this? "; print_node_name stdout unode; 
+                                 Printf.printf "\n";
   | _ -> Printf.printf "What's this?\n";;
 
 let _ =
+  let sym_tbl = Hashtbl.create 17 in
+  let path = { package=(Some "__DEFAULT__"); entity=None} in
   let u = "--comment\nentity Blah is generic( genval,gen2: integer := 0; genv3: integer :=
-    12; genv4: string ); port ( foo,bar: in bit; baz: out bit );" in
+    12; genv4: string ); port ( foo,bar: in bit; baz: out bit
+);\n--comment2\nentity BAZ is port(x:in bit; y:out bit);" in
     let t = Aurochs.read ~grammar:(`Program Vhdl.program) ~text:(`String u) in
-    eval t;;
+    Hashtbl.add sym_tbl path (Hashtbl.create 17); (* path => Hash *)
+    eval t path sym_tbl;;
     (*Printf.printf ">>> %d\n%!" x;*)
 
