@@ -24,7 +24,7 @@ let rec extract_port_decl p =
   
   let rec aux_port_decl pn  = match pn with
   | Node(N_Root, _, [x]) ->  Printf.printf "Root\n"; aux_port_decl x 
-  | Node(N_ISigDecl, [(A_signames,sigs);(A_direction,dir);(A_type,stype)],_) ->
+  | Node(N_ISigDecl, [(A_signames,sigs);(A_mode,dir);(A_type,stype)],_) ->
     (* List.iter (fun io -> (print_interface { signame=io; * mode=dir;sigtype=stype}) ) sigs *)
       Printf.printf "sigs is: %s\n" sigs
   | Node(N_Port_decl, _, xs) ->   (* xs is a list of interfaces *)
@@ -53,8 +53,30 @@ let rec handle_generic gns::al =
               ) al; Printf.printf "</GenericDecl>\n"
 *)
 
-let rec eval tree path symtbl  = match tree with
-Node(N_Root, _, [x]) ->  Printf.fprintf stdout "<Root>\n"; eval x path symtbl; Printf.printf "</Root>\n";
+let rec eval tree path symtbl  = 
+  
+ let rec reduce n  = match n with
+  | Node(N_Simple_term, _, [x]) -> reduce x
+  | Node(N_Add, _, [x;y]) ->  ((reduce x ) + (reduce y ))
+  | Node(N_Sub, _, [x;y]) ->  ((reduce x ) - (reduce y ))
+  | Node(N_Mul, _, [x;y]) ->  ((reduce x ) * (reduce y ))
+  | Node(N_Neg, _, [x]) -> ( - (reduce x ))
+  | Node(N_Number, [A_value,x],[]) -> int_of_string x 
+  | Node(N_Var, [A_varname,nm],[]) -> (* lookup variable value *)
+      (
+         let ent_symtab = Hashtbl.find symtbl path in
+         match (try Hashtbl.find ent_symtab nm with Not_found -> None) with
+         | None -> failwith  (Printf.sprintf "Undefined variable %s\n" nm)
+         | Some x -> (int_of_string x ) 
+      ) 
+  |Node( (_ as unode), _, _) ->  Printf.printf "What node is this? "; print_node_name stdout unode; 
+                                 failwith "\n";
+  | _ -> failwith "ILLEGAL NODE TYPE FOR ARITH EXPRESSION" in
+
+  
+  match tree with
+
+    Node(N_Root, _, [x]) ->  Printf.fprintf stdout "<Root>\n"; eval x path symtbl; Printf.printf "</Root>\n"
   | Node(N_Root, _, (_::_ as lst)) ->  Printf.fprintf stdout "<Root>\n"; 
     List.iter ( fun node -> eval node path symtbl ) lst;
     Printf.fprintf stdout "</Root>\n"
@@ -70,13 +92,13 @@ Node(N_Root, _, [x]) ->  Printf.fprintf stdout "<Root>\n"; eval x path symtbl; P
      pf "<GenericClause>\n";
      List.iter ( fun node -> eval node path symtbl) lst ;
      pf "</GenericClause>\n"
-  | Node(N_GenericDecl, [(A_gennames,names);(A_type,gentype);(A_generic_value,value)], _) -> 
+  | Node(N_GenericDecl, [(A_gennames,names);(A_itype,gentype);(A_generic_value,value)], _) -> 
          let ent_symtab = Hashtbl.find symtbl path in
          let namelist = split "," names in
          List.iter ( fun s -> ((pf " GenName: %s => Type: %s => Value: %s \n" s gentype value)); 
            Hashtbl.add ent_symtab s (Some value)
          ) namelist
-  | Node(N_GenericDecl, [(A_gennames,names);(A_type,gentype)], _) -> 
+  | Node(N_GenericDecl, [(A_gennames,names);(A_itype,gentype)], _) -> 
          let ent_symtab = Hashtbl.find symtbl path in
          let namelist = split "," names in
          List.iter ( fun s -> (pf " GenName: %s => Type: %s => Value: ?? \n" s gentype ); 
@@ -97,13 +119,32 @@ Node(N_Root, _, [x]) ->  Printf.fprintf stdout "<Root>\n"; eval x path symtbl; P
               ) al; Printf.printf "</GenericDecl>\n"
   *)
   (*
-  | Node(N_Port_sig, [(A_name,z);(A_direction,dir)], x::xs) -> 
+  | Node(N_Port_sig, [(A_name,z);(A_mode,dir)], x::xs) -> 
       Printf.printf "name: %s, dir: %s\n" z dir;
-      eval x; eval (Node(N_Port_sig, [(A_name,z);(A_direction,dir)], xs))
-  | Node(N_Port_sig, [(A_name,z);(A_direction,y)], _ ) -> Printf.printf "Name: %s, Dir: %s\n" z y
+      eval x; eval (Node(N_Port_sig, [(A_name,z);(A_mode,dir)], xs))
+  | Node(N_Port_sig, [(A_name,z);(A_mode,y)], _ ) -> Printf.printf "Name: %s, Dir: %s\n" z y
   | Node(N_Port_sig, _, _ ) -> Printf.printf "port_sig\n"
   *)
-  | Node(N_ISigDecl, [(A_signames,z);(A_direction,y);(A_type,tt)], _ ) ->
+
+  | Node(N_SliceName, _, [x]) -> Printf.printf "( "; eval x path symtbl;  Printf.printf " )\n"
+  | Node(N_Range, [A_dir,d], [x;y]) -> eval x path symtbl;Printf.printf " %s " d; 
+                                       eval y path symtbl
+  | Node(N_ISigDecl, [(A_signames,z);(A_mode,y)], [x] ) ->
+      let siglist = split "," z in
+      List.iter ( fun s -> Printf.printf " SigName: %s => Mode: %s => TypE: ? \n" s y ; 
+                           eval x path symtbl
+                ) siglist
+  | Node(N_ISigDecl, [(A_signames,z);(A_mode,y);(A_itype,tt)], x::xs ) ->
+      let siglist = split "," z in
+      List.iter ( fun s -> Printf.printf " SigName: %s => Mode: %s => TYpe: %s " s y tt; 
+                           eval x path symtbl
+                ) siglist
+
+  | Node(N_ISigDecl, [(A_signames,z);(A_mode,y);(A_itype,tt)], [] ) ->
+      let siglist = split "," z in
+      List.iter ( fun s -> Printf.printf " SigName: %s => Mode: %s => TYPE: %s \n" s y tt ) siglist
+
+  | Node(N_ISigDecl, [(A_signames,z);(A_mode,y);(A_itype,tt)], _ ) ->
       let siglist = split "," z in
       List.iter ( fun s -> Printf.printf " SigName: %s => Mode: %s => Type: %s \n" s y tt ) siglist
   | Node(N_ISigDecl, al, _ ) -> Printf.printf "ISigDecl : no specified fields\n"
@@ -113,15 +154,25 @@ Node(N_Root, _, [x]) ->  Printf.fprintf stdout "<Root>\n"; eval x path symtbl; P
      List.iter ( fun node -> eval node path symtbl) lst ;
      Printf.printf "</Port_decl>\n";
 
+  | Node(N_Add, _, _) | Node(N_Sub, _, _) | Node(N_Mul, _, _) 
+  | Node(N_Neg, _, _) | Node(N_Number,_,_)| Node(N_Simple_term,_,_)  ->
+      Printf.printf " %d " (reduce tree)
+(*  | Node(N_Name, [(A_name,x)], _) -> Printf.printf "Identifier: %s\n" x *)
+
   |Node( (_ as unode), _, _) ->  Printf.printf "What node is this? "; print_node_name stdout unode; 
                                  Printf.printf "\n";
-  | _ -> Printf.printf "What's this?\n";;
+  | _ -> Printf.printf "What's this?\n"
+
+;;
 
 let _ =
   let sym_tbl = Hashtbl.create 17 in
   let path = { package=(Some "__DEFAULT__"); entity=None} in
-  let u = "--comment\nentity Blah is generic( genval,gen2: integer := 0; genv3: integer :=
+  (*let u = "--comment\nentity Blah is generic( genval,gen2: integer := 0; genv3: integer :=
     12; genv4: string ); port ( foo,bar: in bit; baz: out bit
+);\n--comment2\nentity BAZ is port(x:in bit; y:out bit);" in *)
+  let u = "--comment\nentity Blah is generic( genval,gen2: integer := 2; genv3: integer :=
+    12; genv4: string ); port ( foo,bar: in bit; baz: out bit((gen2+1)*2 downto (0-1))
 );\n--comment2\nentity BAZ is port(x:in bit; y:out bit);" in
     let t = Aurochs.read ~grammar:(`Program Vhdl.program) ~text:(`String u) in
     Hashtbl.add sym_tbl path (Hashtbl.create 17); (* path => Hash *)

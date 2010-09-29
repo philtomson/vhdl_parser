@@ -11,10 +11,15 @@ alpha ::= [A-Za-z_$];
 
 
 dec_number ::= [0-9]+;
+digit  ::= [0-9];
+float ::= '-'? digit+ ('.' digit+)? ('e' ('-'|'+')? digit+)?;
+integer ::= '-'? digit+;
+numeric_literal ::= dec_number ; (* |  based_literal  | physical_literal*)
 
 letter ::= [A-Za-z];
 letter_or_digit ::= [A-Za-z0-9];
-basic_ident ::= (~(keyword sp) letter letter_or_digit*);
+anychar ::= [ A-Za-z0-9]; (* need to add some categories here *)
+basic_ident ::= <Ident>name:(~(keyword sp) letter letter_or_digit*)</Ident>;
 ident ::= basic_ident ;
 sp ::= space+ | ~alpha | BOF;
 LPAR ::= "(";
@@ -70,6 +75,7 @@ literal_kwd ::= "literal"^i ;
 loop_kwd ::= "loop"^i ;
 map_kwd ::= "map"^i ;
 mod_kwd ::= "mod"^i ;
+rem_kwd ::= "rem"^i ;
 nand_kwd ::= "nand"^i ;
 new_kwd ::= "new"^i ;
 next_kwd ::= "next"^i ;
@@ -217,37 +223,109 @@ keyword ::=
   xnor_kwd |
   xor_kwd ;
 
+string_literal ::= '"' value:(anychar ~' ')* '"' ;
+direction ::= downto_kwd | to_kwd ;
+add_op    ::= '+' ;
+sub_op    ::= '-' ;
+mul_op    ::= '*' ;
+concat_op ::= '&' ;
+sign      ::= '+' | '-' ;
+mult_op   ::= '*' | '/' | mod_kwd | rem_kwd ;
+
+simple_name ::= ident; 
+
+literal ::=   numeric_literal 
+           (* | enumeration_literal *)
+            | string_literal 
+           (* | bit_string_literal *)
+           (* | NULL *)  ;
 
 
 optional_space ::= space*;
 
 outfixing optional_space do
   appending optional_space do
+    operator_symbol ::= string_literal ;
+    name      ::=  <Name> name:simple_name 
+                 | operator_symbol 
+              (* | selected_name *)
+              (* | indexed_name  *)
+              (* | slice_name *)
+              (* | attribute_name *)</Name>;  
+
+    prefix ::= name ; (* | function_call *) 
+
+    primary ::=  name 
+               | literal
+             (*| aggregate *)
+             (*| function_call*)
+             (*| qualified_expression *)
+             (*| type_conversion *)
+             (*| allocator *)
+             (*| '(' expression ')' *)   ;
+
+    slice ::= <SliceName> '(' discrete_range ')' </SliceName>;
+
+    range ::= <Range>expression dir:direction expression</Range> ;
+
+    target ::= name ; (* | aggregate *) 
+
+    factor ::=   primary 
+               | abs_kwd primary
+               | not_kwd primary ;
+
+    sum ::= <Add> term  add_op sum </Add>
+          | <Sub> term  sub_op sum </Sub>
+          | term;
+
+    term  ::= 
+            <Mul> simple_term mul_op term </Mul> 
+          | <Neg> '-' simple_term </Neg>
+          | <Var> varname:name </Var> 
+          | simple_term;
+
+    expression ::= sum ;
+
+    simple_term ::= <Simple_term>number | '(' expression ')' </Simple_term>;
+
+    number ::= <Number> value:(float|integer) </Number>;
+
+
+    simple_expression ::= <ArithExpr>sign? term ( add_op term)* </ArithExpr> ;
+
+    discrete_range ::= range  (* | discrete_subtype_indication *);
 
     num_expression ::= dec_number; (* expand with arit expressions *)
 
     mode ::= <Dir_spec>{(in_kwd | out_kwd | inout_kwd | buffer_kwd | linkage_kwd )}</Dir_spec> ;
 
-    type_name ::= ident; (* TODO: need to be able to add optional range *)
+    type_name ::= name; (* TODO: need to be able to add optional range *)
+
+    type_mark ::= type_name (* | subtype_name *);
+
+    (*subtype_indication ::= (* resolution_function_name? *) type_mark (* constraint? *); *)
+    subtype_indication ::= <Subtype>simple_name slice? </Subtype>;
 
     entity_decl ::= <Entity_decl>entity_kwd entity_name:ident is_kwd generic_clause? port_decl</Entity_decl>; 
 
     generic_list ::= generic_decl ( semicolon? generic_decl)* ;
     
     (* TODO: currently a generic value can only be an integer *)
-    generic_decl ::= <GenericDecl>(gennames:identifier_list ":" type:type_name (":=" generic_value:num_expression )? )</GenericDecl> ;
+    generic_decl ::= <GenericDecl>(gennames:identifier_list ":" itype:subtype_indication (":=" generic_value:num_expression )? )</GenericDecl> ;
 
     generic_clause ::= <GenericClause>generic_kwd LPAR  generic_list  RPAR semicolon</GenericClause> ;
 
     identifier_list ::= ident ( ","? ident )* ;
 
-    interface_signal_decl ::= <ISigDecl>((signal_kwd)? signames:identifier_list ":" direction:mode type:{type_name}) </ISigDecl>;
+ (*   interface_signal_decl ::= <ISigDecl>((signal_kwd)? signames:identifier_list ":" mode:mode itype:subtype_indication) </ISigDecl>;*)
+
+    interface_signal_decl ::= <ISigDecl>(signal_kwd)? signames:identifier_list ":" mode:mode itype:simple_name slice?</ISigDecl>;
 
     interface_element ::= interface_signal_decl ;
 
     interface_list ::= interface_element ( semicolon? interface_element )* ;
 
-    port_sig ::= <Port_sig> name:{ident} ":" direction:{mode} </Port_sig>;
+    port_sig ::= <Port_sig> name:{ident} ":" mode:{mode} </Port_sig>;
 
     port_decl1 ::= <Port_decl> start:position port_kwd LPAR port_sig ( semicolon? port_sig)* RPAR semicolon</Port_decl>;
 
