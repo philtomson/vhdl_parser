@@ -191,6 +191,7 @@ keyword ::=
   procedure_kwd |
   process_kwd |
   pure_kwd |
+  rem_kwd | 
   range_kwd |
   record_kwd |
   register_kwd |
@@ -270,6 +271,7 @@ outfixing optional_space do
 
     target ::= name ; (* | aggregate *) 
 
+
     factor ::=   primary 
                | abs_kwd primary
                | not_kwd primary ;
@@ -325,9 +327,6 @@ outfixing optional_space do
 
     interface_list ::= interface_element ( semicolon? interface_element )* ;
 
-    port_sig ::= <Port_sig> name:{ident} ":" mode:{mode} </Port_sig>;
-
-    port_decl1 ::= <Port_decl> start:position port_kwd LPAR port_sig ( semicolon? port_sig)* RPAR semicolon</Port_decl>;
 
     port_decl ::= <Port_decl> start:position port_kwd LPAR interface_list RPAR semicolon </Port_decl>;
 
