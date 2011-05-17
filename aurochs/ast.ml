@@ -10,11 +10,20 @@ type aTypeVal = Int of (int * int range)
              (* | UserDef of 'a ;;  UserDef probably won't work
                                     in practice *)
 
-type desSeq = desUnit list
-and desUnit = interfaceSeq * (genericSeq option) 
-and genericSeq = generic list
-and generic = (name * aTypeVal) 
-and interfaceSeq = interfaceSig list
-and interfaceSig = (name * mode * aTypeVal) ;;
+type desLst = desUnit list
+and desUnit = DesUnit of (interfaceLst * (genericLst option)) 
+and genericLst = GenLst of generic list
+and generic = Generic of (name * aTypeVal) 
+and interfaceLst = InterfaceLst of interfaceSig list
+and interfaceSig = InterfaceSig of (name * mode * aTypeVal) ;;
 
-  
+(* Example: 
+let des = [ DesUnit( 
+               InterfaceLst [ 
+                 InterfaceSig ("A",In,Int(0, Range(0,255)))
+               ],
+               Some(GenLst [
+                      Generic("FOO",Float(0.0,Full))
+                    ]))
+          ] ;;  
+*)
