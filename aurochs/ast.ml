@@ -11,8 +11,8 @@ type aTypeVal = Int of (int * int range)
                                     in practice *)
 
 type desLst = desUnit list
-and desUnit = DesUnit of (interfaceLst * (genericLst option)) 
-and genericLst = GenLst of generic list
+and desUnit = DesUnit of (interfaceLst * genericLst ) 
+and genericLst = GenericLst of generic list
 and generic = Generic of (name * aTypeVal) 
 and interfaceLst = InterfaceLst of interfaceSig list
 and interfaceSig = InterfaceSig of (name * mode * aTypeVal) ;;
@@ -22,8 +22,8 @@ let des = [ DesUnit(
                InterfaceLst [ 
                  InterfaceSig ("A",In,Int(0, Range(0,255)))
                ],
-               Some(GenLst [
+               GenericLst [
                       Generic("FOO",Float(0.0,Full))
-                    ]))
+                    ])
           ] ;;  
 *)
